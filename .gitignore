@@ -13,3 +13,6 @@ runs
 __version__*
 PKG-INFO
 .junit-test-report.xml
+*.0
+dataset/lock.mdb
+dataset/data.mdb

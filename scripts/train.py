@@ -2,10 +2,10 @@ import hashlib
 import os
 import sys
 from typing import Any, Dict
-
 import gin
 import pytorch_lightning as pl
 import torch
+import multiprocessing as mp
 from absl import flags, app
 from torch.utils.data import DataLoader
 
@@ -21,6 +21,9 @@ import rave.core
 import rave.dataset
 from rave.transforms import get_augmentations, add_augmentation
 
+# changes the default multiprocessing behaviour from "spawn" to "fork".
+# This is needed on macOS since Python 3.8 to make num_workers > 0 work
+mp.set_start_method('fork', force=True)
 
 FLAGS = flags.FLAGS
 
@@ -173,7 +176,7 @@ def main(argv):
     # get data-loader
     num_workers = FLAGS.workers
     if os.name == "nt" or sys.platform == "darwin":
-        num_workers = 0
+        num_workers = 8 # python hints to set this equal to the number of CPU cores on the machine
     train = DataLoader(train,
                        FLAGS.batch,
                        True,
@@ -220,10 +223,6 @@ def main(argv):
         accelerator = "cuda"
         devices = FLAGS.gpu or rave.core.setup_gpu()
     elif torch.backends.mps.is_available():
-        print(
-            "Training on mac is not available yet. Use --gpu -1 to train on CPU (not recommended)."
-        )
-        exit()
         accelerator = "mps"
         devices = 1
 
@@ -268,5 +267,6 @@ def main(argv):
     trainer.fit(model, train, val, ckpt_path=run)
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
+
     app.run(main)

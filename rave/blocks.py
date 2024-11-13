@@ -6,7 +6,7 @@ import gin
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.nn.utils import weight_norm
+from torch.nn.utils.parametrizations import weight_norm
 from torchaudio.transforms import Spectrogram
 
 from .core import amp_to_impulse_response, fft_convolve, mod_sigmoid
